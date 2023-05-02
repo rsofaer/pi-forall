@@ -1,0 +1,5 @@
+-- Should not typecheck as t and f clauses must be the correct type
+-- in the absence of sum types
+eq3 : Bool -> Bool -> Bool
+eq3 = \ b1 b2 . if b1 then ((\ x . not b2): Bool -> Bool) else ((\ x . b2): Bool -> Bool)
+
