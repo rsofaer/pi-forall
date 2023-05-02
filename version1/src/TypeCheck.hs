@@ -31,6 +31,9 @@ tcType tm = void $ checkType tm Type
 
 ---------------------------------------------------------------------
 
+typeOfI :: Type -> Type
+typeOfI (Pos _ a ) = a
+typeOfI x = x
 -- | Combined type checking/inference function
 -- The second argument is 'Just expectedType' in checking mode and 'Nothing' in inference mode
 -- In either case, this function returns the type of the term
@@ -85,11 +88,29 @@ tcTerm TrustMe (Just ty) = return ty
 tcTerm TyUnit Nothing = return Type
 tcTerm LitUnit Nothing = return TyUnit
 -- i-bool
-tcTerm TyBool Nothing = Env.err [DS "unimplemented"]
+tcTerm TyBool Nothing = return Type -- Env.err [DS "unimplemented"]
 -- i-true/false
-tcTerm (LitBool b) Nothing = Env.err [DS "unimplemented"]
+tcTerm (LitBool b) Nothing = return TyBool -- Env.err [DS "unimplemented"]
 -- c-if
-tcTerm t@(If t1 t2 t3) mty = Env.err [DS "unimplemented"]
+tcTerm t@(If t1 t2 t3) (Just ty) = do
+  ty1 <- inferType t1 
+  ty2 <- inferType t2
+  ty3 <- inferType t3
+  unless (Unbound.aeq ty2 ty3) $ Env.err [DS "True and False clause don't match", DD ty2, DS "and", DD ty3]
+  unless (Unbound.aeq ty2 ty) $ Env.err [DS "True clause has wrong type", DD ty2, DS "and", DD ty]
+  unless (Unbound.aeq ty3 ty) $ Env.err [DS "False clause has wrong type", DD ty3, DS "and", DD ty]
+  case ty1 of
+    TyBool -> return ty2 
+    _ -> Env.err [DS ("Conditional must be Bool, got: " ++ (show ty1))] -- Env.err [DS "Conditional must be a Bool"] -- Env.err [DS "unimplemented"]
+  
+tcTerm t@(If t1 t2 t3) Nothing = do
+  ty1 <- inferType t1 
+  ty2 <- inferType t2
+  ty3 <- inferType t3
+  unless (Unbound.aeq ty2 ty3) $ Env.err [DS "True and False clause don't match", DD ty2, DS "and", DD ty3]
+  case ty1 of
+    TyBool -> return ty2 
+    _ -> Env.err [DS ("Conditional must be Bool, got: " ++ (show ty1))] -- Env.err [DS "Conditional must be a Bool"] -- Env.err [DS "unimplemented"]
 tcTerm (Let rhs bnd) mty = Env.err [DS "unimplemented"]
 tcTerm t@(Sigma tyA bnd) Nothing = Env.err [DS "unimplemented"]
 tcTerm t@(Prod a b) (Just ty) = Env.err [DS "unimplemented"]
