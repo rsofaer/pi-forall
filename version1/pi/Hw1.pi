@@ -18,21 +18,6 @@ eq_bool : Bool -> Bool -> Bool
 eq_bool = \ b1 b2 . 
   if b1 then b2 else (not b2)  
 
-T : Type
-T = (x:Type) -> x
--- Should not typecheck as conditional must be bool
--- eq2 : T -> Bool -> Bool
--- eq2 = \ b1 b2 . if b1 then b2 else (not b2)  
-
--- Should not typecheck as t and f clauses must be the same type
--- in the absence of sum types
--- eq3 : Bool -> Bool -> Bool
--- eq3 = \ b1 b2 . if b1 then b2 else ((\ x . b2): Bool -> Bool)
-
--- Should not typecheck as t and f clauses must be the correct type
--- in the absence of sum types
-eq3 : Bool -> Bool -> Bool
-eq3 = \ b1 b2 . if b1 then ((\ x . not b2): Bool -> Bool) else ((\ x . b2): Bool -> Bool)
 --- sigma types
 
 double : (A:Type) -> (x : A) -> { x : A | A }

@@ -31,9 +31,6 @@ tcType tm = void $ checkType tm Type
 
 ---------------------------------------------------------------------
 
-typeOfI :: Type -> Type
-typeOfI (Pos _ a ) = a
-typeOfI x = x
 -- | Combined type checking/inference function
 -- The second argument is 'Just expectedType' in checking mode and 'Nothing' in inference mode
 -- In either case, this function returns the type of the term
@@ -99,6 +96,7 @@ tcTerm t@(If t1 t2 t3) (Just ty) = do
   unless (Unbound.aeq ty2 ty3) $ Env.err [DS "True and False clause don't match", DD ty2, DS "and", DD ty3]
   unless (Unbound.aeq ty2 ty) $ Env.err [DS "True clause has wrong type", DD ty2, DS "and", DD ty]
   unless (Unbound.aeq ty3 ty) $ Env.err [DS "False clause has wrong type", DD ty3, DS "and", DD ty]
+  -- TODO: Add to the context the knowledge that in t2, t1 is (LitBool true), and in t3, t1 is (LitBool False)
   case ty1 of
     TyBool -> return ty2 
     _ -> Env.err [DS ("Conditional must be Bool, got: " ++ (show ty1))] -- Env.err [DS "Conditional must be a Bool"] -- Env.err [DS "unimplemented"]
@@ -111,10 +109,20 @@ tcTerm t@(If t1 t2 t3) Nothing = do
   case ty1 of
     TyBool -> return ty2 
     _ -> Env.err [DS ("Conditional must be Bool, got: " ++ (show ty1))] -- Env.err [DS "Conditional must be a Bool"] -- Env.err [DS "unimplemented"]
-tcTerm (Let rhs bnd) mty = Env.err [DS "unimplemented"]
-tcTerm t@(Sigma tyA bnd) Nothing = Env.err [DS "unimplemented"]
-tcTerm t@(Prod a b) (Just ty) = Env.err [DS "unimplemented"]
-tcTerm t@(LetPair p bnd) (Just ty) = Env.err [DS "unimplemented"]
+tcTerm (Let rhs bnd) mty = Env.err [DS "unimplemented Let"]
+tcTerm t@(Sigma tyA bnd) Nothing = do 
+  (x, tyB) <- Unbound.unbind bnd
+  --(y, tyC) <- Unbound.unbind tyB
+  res <- inferType tyB
+  case tyB of
+    Pos p tm -> do 
+      tyC <- inferType tm
+      return (Prod tyA tyC)
+    _ -> Env.err [DS "unimplemented _ Sigma", DD tyA, DS "and", DS (show res)]
+  --return (Sigma tyA tyC)
+  --Env.err [DS "unimplemented Sigma", DD tyA, DS "and", DS (show res)]
+tcTerm t@(Prod a b) (Just ty) = Env.err [DS "unimplemented Prod"]
+tcTerm t@(LetPair p bnd) (Just ty) = Env.err [DS "unimplemented LetPair"]
 tcTerm PrintMe (Just ty) = do
   gamma <- Env.getLocalCtx
   Env.warn
