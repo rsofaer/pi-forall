@@ -23,13 +23,13 @@ idxl = \[a] lst i . case lst of
     Zero -> Just h
     Succ j -> idxl [a] l' j
 
-idxv : [a: Type] -> [n:Nat] -> Vec a (Succ n) -> (i: Fin (Succ n)) -> (a)
-idxv = \[a] [n] v i . case v of -- v is of length Succ n
-  Cons [n] h l' -> case i of -- 
-    Zero [_] -> h -- i is zero so we want the first element of v
-    Succ [n] j -> idxv [a] [n] l' j
-  -- Nil case impossible due to Succ n in type signature
-  
+idxv : [a: Type] -> [n: Nat] -> Vec a n -> (i: Fin n) -> (a)
+idxv = \[a] [n] v i . case i of 
+  Zero [_] -> case v of 
+    Cons [n'] h l' -> h
+  Succ [nj'] j -> case v of
+    Cons [n'] h l' -> idxv [a] [n'] l' j
+
 successors : (n: Nat) -> (Graph n) -> (u : Fin n) -> (List Node)
 successors = \n g u . case g of 
     G v -> case v of 
