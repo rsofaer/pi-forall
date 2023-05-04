@@ -100,7 +100,7 @@ tcTerm t@(If t1 t2 t3) (Just ty) = do
   case ty1 of
     TyBool -> return ty2 
     _ -> Env.err [DS ("Conditional must be Bool, got: " ++ (show ty1))] -- Env.err [DS "Conditional must be a Bool"] -- Env.err [DS "unimplemented"]
-  
+-- i-if
 tcTerm t@(If t1 t2 t3) Nothing = do
   ty1 <- inferType t1 
   ty2 <- inferType t2
@@ -109,20 +109,39 @@ tcTerm t@(If t1 t2 t3) Nothing = do
   case ty1 of
     TyBool -> return ty2 
     _ -> Env.err [DS ("Conditional must be Bool, got: " ++ (show ty1))] -- Env.err [DS "Conditional must be a Bool"] -- Env.err [DS "unimplemented"]
-tcTerm (Let rhs bnd) mty = Env.err [DS "unimplemented Let"]
+
+-- c-let and i-let
+-- Key question here: wtf are these vars actually
+tcTerm (Let rhs bnd) mty = do 
+  tcType rhs
+  (x, tyB) <- Unbound.unbind bnd
+  Env.err [DS "unimplemented Let", DD rhs, DS "and", DD tyB]
+
+-- i-sigma
 tcTerm t@(Sigma tyA bnd) Nothing = do 
   (x, tyB) <- Unbound.unbind bnd
-  --(y, tyC) <- Unbound.unbind tyB
-  res <- inferType tyB
+  checkType tyA Type
+  Env.extendCtx (mkSig x tyA) $ checkType tyB Type
+  -- Env.err [DS "unimplemented aaaah Sigma", DD tyA, DS "and", DS (show tyB)]
   case tyB of
     Pos p tm -> do 
-      tyC <- inferType tm
-      return (Prod tyA tyC)
-    _ -> Env.err [DS "unimplemented _ Sigma", DD tyA, DS "and", DS (show res)]
+      return Type --(Sigma tyA (Unbound.bind x tyB))
+    _ -> Env.err [DS "unimplemented _ Sigma", DD tyA, DS "and", DS (show tyB)]
   --return (Sigma tyA tyC)
   --Env.err [DS "unimplemented Sigma", DD tyA, DS "and", DS (show res)]
-tcTerm t@(Prod a b) (Just ty) = Env.err [DS "unimplemented Prod"]
-tcTerm t@(LetPair p bnd) (Just ty) = Env.err [DS "unimplemented LetPair"]
+
+-- c-prod
+tcTerm t@(Prod a b) (Just ty) = case ty of 
+  Sigma tyA bnd -> do --Env.err [DS "unimplemented Prod for Sigma"]
+    checkType a tyA
+    (x, tyB) <- Unbound.unbind bnd
+    checkType b tyB
+    return (Sigma tyA (Unbound.bind x tyB))
+  _ -> Env.err [DS "unimplemented Prod for non-Sigma"]
+tcTerm t@(LetPair p bnd) (Just ty) = do 
+    (x, tyB) <- Unbound.unbind bnd
+    tcType ty
+    Env.err [DS "unimplemented LetPair"]
 tcTerm PrintMe (Just ty) = do
   gamma <- Env.getLocalCtx
   Env.warn

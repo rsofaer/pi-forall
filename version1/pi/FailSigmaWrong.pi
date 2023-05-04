@@ -1,0 +1,3 @@
+module FailSigmaWrong where
+double : (A:Type) -> (x : A) -> { x : A | A }
+double = \A x. (x,A) 

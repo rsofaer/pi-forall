@@ -1,4 +1,4 @@
-
+module FailIfConditionalNotBool where
 T : Type
 T = (x:Type) -> x
 -- Should not typecheck as conditional must be bool

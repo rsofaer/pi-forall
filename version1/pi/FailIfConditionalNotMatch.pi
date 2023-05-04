@@ -1,3 +1,4 @@
+module FailIfConditionalNotMatch where
 -- Should not typecheck as t and f clauses must be the same type
 -- in the absence of sum types
 eq3 : Bool -> Bool -> Bool
