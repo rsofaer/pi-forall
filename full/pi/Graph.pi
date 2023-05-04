@@ -1,0 +1,56 @@
+module Graph where
+
+import Nat
+import Vec
+import List
+import Fin 
+import Product
+
+data Maybe (a : Type) : Type where
+  Nothing
+  Just of (a)
+ 
+Node : Type
+Node = Nat
+
+data Graph (n : Nat) : Type where
+  G of (Vec (List Node) n)
+
+idxl : [a: Type] -> List a -> Nat -> (Maybe a)
+idxl = \[a] lst i . case lst of 
+  Nil -> Nothing
+  Cons h l' -> case i of
+    Zero -> Just h
+    Succ j -> idxl [a] l' j
+
+idxv : [a: Type] -> [n:Nat] -> Vec a (Succ n) -> (i: Fin (Succ n)) -> (a)
+idxv = \[a] [n] v i . case v of -- v is of length Succ n
+  Cons [n] h l' -> case i of -- 
+    Zero [_] -> h -- i is zero so we want the first element of v
+    Succ [n] j -> idxv [a] [n] l' j
+  -- Nil case impossible due to Succ n in type signature
+  
+successors : (n: Nat) -> (Graph n) -> (u : Fin n) -> (List Node)
+successors = \n g u . case g of 
+    G v -> case v of 
+      Nil -> Nil
+      Cons [m] h tl -> idxv [List Node] [Succ m] v u 
+
+--successors = \n g u . case n of 
+--  Zero -> Nil
+--  Succ m -> case g of 
+--    G v -> idxv [List Node] [n] v u 
+
+-- contains : List (a : Type) -> a -> Bool
+-- Rather than explicit contains, just use filter equals?
+--maybe_pred_single : Node -> Node -> Maybe Node
+--maybe_pred_single = \target n . case n of
+--  AdjList n_succs -> case filter [Node] (\x . x = target) n_succs of
+--    Nil -> Nothing
+--    Cons a a' -> Just a
+
+--maybe_pred : (g: Graph) -> (List (Maybe Node))
+--maybe_pred = TRUSTME
+
+--predecessors : (g : Graph) -> (List Node)
+--predecessors = TRUSTME
