@@ -41,16 +41,32 @@ successors = \n g u . case g of
 --  Succ m -> case g of 
 --    G v -> idxv [List Node] [n] v u 
 
--- contains : List (a : Type) -> a -> Bool
+contains_nat : List Nat -> Nat -> Bool
+contains_nat = \l x . case l of
+  Nil -> False
+  Cons h tl -> if (nat_eq x h) then True else (contains_nat tl x)
+ 
 -- Rather than explicit contains, just use filter equals?
+is_pred : (n: Nat) -> (Graph n) -> (u: Fin n) -> (v: Fin n) -> Maybe (Fin n) -- Return u if u is a predecessor of v, else nothing
+is_pred = \n g u v . let succs = successors n g v in
+  case (contains_nat succs (toNat [n] u)) of
+    False -> Nothing
+    True -> Just v
+
+contains_maybe : [a: Type] -> a -> List Nat -> Nat -> Maybe a
+contains_maybe = \[a] ret lst n . case (contains_nat lst n) of
+  False -> Nothing
+  True -> Just ret
+
 --maybe_pred_single : Node -> Node -> Maybe Node
 --maybe_pred_single = \target n . case n of
 --  AdjList n_succs -> case filter [Node] (\x . x = target) n_succs of
 --    Nil -> Nothing
 --    Cons a a' -> Just a
 
---maybe_pred : (g: Graph) -> (List (Maybe Node))
---maybe_pred = TRUSTME
+maybe_preds : [n: Nat] -> (g: Graph n) -> Fin n -> (Vec (Maybe Node) n)
+maybe_preds = \[n] g u. case g of
+  G v -> vecmap [List Node] [Maybe Node] [n] (contains_maybe [Maybe Node]  u) v
 
 --predecessors : (g : Graph) -> (List Node)
 --predecessors = TRUSTME
