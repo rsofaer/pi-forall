@@ -53,8 +53,8 @@ is_pred = \n g u v . let succs = successors n g v in
     False -> Nothing
     True -> Just v
 
-contains_maybe : [a: Type] -> a -> List Nat -> Nat -> Maybe a
-contains_maybe = \[a] ret lst n . case (contains_nat lst n) of
+contains_maybe : [a: Type] -> a -> Nat -> List Nat -> Maybe a
+contains_maybe = \[a] ret n lst . case (contains_nat lst n) of
   False -> Nothing
   True -> Just ret
 
@@ -66,7 +66,18 @@ contains_maybe = \[a] ret lst n . case (contains_nat lst n) of
 
 maybe_preds : [n: Nat] -> (g: Graph n) -> Fin n -> (Vec (Maybe Node) n)
 maybe_preds = \[n] g u. case g of
-  G v -> vecmap [List Node] [Maybe Node] [n] (contains_maybe [Maybe Node]  u) v
+  G v -> vecmap [List Node] [Maybe Node] [n] (contains_maybe [Node]  (toNat [n] u) (toNat [n] u)) v
 
---predecessors : (g : Graph) -> (List Node)
---predecessors = TRUSTME
+maybe_v2l : [A: Type] -> [n: Nat] -> Vec (Maybe A) n -> List A
+maybe_v2l = \[A][n] v .
+  case v of
+    Nil -> Nil
+    Cons [n'] x xs -> let p = (maybe_v2l [A] [n'] xs) in
+      case x of
+        Just y -> Cons y p
+        Nothing -> p
+
+
+predecessors : [n: Nat] -> (g : Graph n) -> Fin n -> (List Node)
+predecessors = \[n] g u . let pred_or_nothing_vec = maybe_preds [n] g u in
+  maybe_v2l [Node] [n] pred_or_nothing_vec
