@@ -6,6 +6,15 @@ import List
 import Fin 
 import Product
 
+map_with_index' : [A:Type] -> [B:Type] -> [n:Nat] -> Fin n -> ((Fin n * A) -> B) -> Vec A n -> Vec B n
+map_with_index' = \[A][B][n] idx f v.
+  case v of 
+    Nil -> Nil
+    Cons [m] x xs -> Cons [m] (f (idx * x)) (map_with_index' [A][B] [m] (Succ idx) f xs)
+
+map_with_index = \[A][B][n] f v . map_with_index' [A] [B][n] (Zero [1]) f v
+vecmap = map_with_index
+
 data Maybe (a : Type) : Type where
   Nothing
   Just of (a)
@@ -81,3 +90,7 @@ maybe_v2l = \[A][n] v .
 predecessors : [n: Nat] -> (g : Graph n) -> Fin n -> (List Node)
 predecessors = \[n] g u . let pred_or_nothing_vec = maybe_preds [n] g u in
   maybe_v2l [Node] [n] pred_or_nothing_vec
+
+-- Graph in which every node has an edge going to node 0
+-- InwardSpokeGraph : Type
+-- InwardSpokeGraph = {n : Nat | ((Graph n) *  }
