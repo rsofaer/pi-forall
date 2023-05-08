@@ -60,7 +60,6 @@ map = \[A][B][n] f v.
   case v of 
     Nil -> Nil
     Cons [m] x xs -> Cons [m] (f x) (map[A][B] [m] f xs)
-vecmap = map
 -- note: this version of map needs n at runtime
 
 mapn : [A:Type] -> [B:Type] -> (n:Nat) -> (A -> B) -> Vec A n -> Vec B n

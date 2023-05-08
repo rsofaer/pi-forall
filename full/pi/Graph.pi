@@ -6,13 +6,14 @@ import List
 import Fin 
 import Product
 
-map_with_index' : [A:Type] -> [B:Type] -> [n:Nat] -> Fin n -> ((Fin n * A) -> B) -> Vec A n -> Vec B n
+map_with_index' : [A:Type] -> [B:Type] -> [n:Nat] -> Nat -> (Nat -> A -> B) -> Vec A n -> Vec B n
 map_with_index' = \[A][B][n] idx f v.
   case v of 
     Nil -> Nil
-    Cons [m] x xs -> Cons [m] (f (idx * x)) (map_with_index' [A][B] [m] (Succ idx) f xs)
+    Cons [m] x xs -> Cons [m] (f idx  x) (map_with_index' [A][B] [m] (Succ idx) f xs)
 
-map_with_index = \[A][B][n] f v . map_with_index' [A] [B][n] (Zero [1]) f v
+map_with_index : [A:Type] -> [B:Type] -> [n:Nat] -> (Nat -> A -> B) -> Vec A n -> Vec B n
+map_with_index = \[A][B][n] f v . map_with_index' [A] [B][n] (Zero) f v
 vecmap = map_with_index
 
 data Maybe (a : Type) : Type where
@@ -62,10 +63,10 @@ is_pred = \n g u v . let succs = successors n g v in
     False -> Nothing
     True -> Just v
 
-contains_maybe : [a: Type] -> a -> Nat -> List Nat -> Maybe a
-contains_maybe = \[a] ret n lst . case (contains_nat lst n) of
+contains_maybe : [a: Type] -> a -> Nat -> Nat -> List Nat -> Maybe Nat
+contains_maybe = \[a] ret n idx lst . case (contains_nat lst n) of
   False -> Nothing
-  True -> Just ret
+  True -> Just idx
 
 --maybe_pred_single : Node -> Node -> Maybe Node
 --maybe_pred_single = \target n . case n of
