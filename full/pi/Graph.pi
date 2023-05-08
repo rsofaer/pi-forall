@@ -92,6 +92,14 @@ predecessors : [n: Nat] -> (g : Graph n) -> Fin n -> (List Node)
 predecessors = \[n] g u . let pred_or_nothing_vec = maybe_preds [n] g u in
   maybe_v2l [Node] [n] pred_or_nothing_vec
 
+GraphConstraint : Type
+GraphConstraint = [n: Nat] -> Graph n -> Bool 
+
+ConstrainedGraph : Type
+ConstrainedGraph = { n : Nat | { g: Graph n | { con : GraphConstraint | con [n] g = True }}}
+--inwardSpokeConstraint : GraphConstraint
+--inwardSpokeConstraint = \[n] g . case g of
+--  G v -> let toZ = (\x eq_bool x 0)
 -- Graph in which every node has an edge going to node 0
 -- InwardSpokeGraph : Type
 -- InwardSpokeGraph = {n : Nat | ((Graph n) *  }
