@@ -171,6 +171,26 @@ cg_degOneEmpty = (0, (G (Nil), (degreeOneCon, Refl)))
 --cg_degOneFail = (1, (G (Cons [0] (Nil) Nil), (degreeOneCon, Refl)))
 
 -- no self edges??
+
+noSelfEdgeConstraint' : [n: Nat] -> Vec (List Node) n -> Nat -> Bool
+noSelfEdgeConstraint' = \[n] v idx . case v of
+  Nil -> True
+  Cons [m] h tl -> if contains_nat h idx then False
+                   else noSelfEdgeConstraint' [m] tl (Succ idx)
+
+noSelfEdgeConstraint : GraphConstraint
+noSelfEdgeConstraint = \[n] g . case g of
+  G v -> noSelfEdgeConstraint' [n] v Zero
+
+-- Example of a graph with no self-edges
+cg_noSelfEdge : ConstrainedGraph
+cg_noSelfEdge = (2, (G (Cons [1] (Cons 1 Nil) (Cons [0] (Cons 0 Nil) Nil)), (noSelfEdgeConstraint, Refl)))
+
+-- Example of a graph with a self-edge
+cg_selfEdgeFail : ConstrainedGraph
+cg_selfEdgeFail = (1, (G (Cons [0] (Cons 0 Nil) Nil), (noSelfEdgeConstraint, Refl)))
+
+
 -- acyclic
 --inwardSpokeConstraint : GraphConstraint
 --inwardSpokeConstraint = \[n] g . case g of
