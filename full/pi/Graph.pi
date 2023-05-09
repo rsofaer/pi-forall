@@ -132,8 +132,46 @@ con_graph_con_and_proof = \ cg. let (n, a) = cg in
 con_graph_con : ConstrainedGraph -> GraphConstraint
 con_graph_con = \cg . let (n, wrapped_g) = cg in let (g, con') = wrapped_g in (fst [GraphConstraint] [\con. ((con [n] g) = True)] con')
 
+con_graph_proof : (cg: ConstrainedGraph) -> (con_graph_con cg) [con_graph_size cg] (con_graph_graph cg) = True
+con_graph_proof = \cg . let (n, wrapped_g) = cg in 
+                        let (g, con') = wrapped_g in 
+                        let (con, proof) = con' in proof
+
 constrained_graph_constraint_true : (cg : ConstrainedGraph) -> (con_graph_con cg) [con_graph_size cg] (con_graph_graph cg) = True
-constrained_graph_constraint_true = PRINTME
+constrained_graph_constraint_true = \cg . con_graph_proof cg
+
+hasNodeCon : GraphConstraint
+hasNodeCon = \[n] g . case g of
+  G v -> case v of 
+    Nil -> False
+    Cons [a] h tl -> True
+
+--ConstrainedGraph = { n : Nat | { g: Graph n | { con : GraphConstraint | con [n] g = True }}}
+cg_simplest : ConstrainedGraph
+cg_simplest = (1, (G (Cons [0] (Nil) Nil), (hasNodeCon, Refl)))
+--cg_simplest_fail : ConstrainedGraph
+--cg_simplest_fail = (0, (G (Nil), (hasNodeCon, Refl)))
+
+-- Constrain every node to have degree >= 1
+degreeOneCon' : [n: Nat] -> Vec (List Node) n -> Bool
+degreeOneCon' = \[n] v . case v of
+  Nil -> True
+  Cons [m] h tl -> case h of 
+    Nil -> False
+    Cons lst_h lst_tl -> degreeOneCon' [m] tl
+degreeOneCon : GraphConstraint
+degreeOneCon = \[n] g . case g of 
+  G v -> degreeOneCon' [n] v
+
+cg_degOne: ConstrainedGraph
+cg_degOne= (1, (G (Cons [0] (Cons 0 Nil) Nil), (degreeOneCon, Refl)))
+cg_degOneEmpty: ConstrainedGraph
+cg_degOneEmpty = (0, (G (Nil), (degreeOneCon, Refl)))
+--cg_degOneFail : ConstrainedGraph
+--cg_degOneFail = (1, (G (Cons [0] (Nil) Nil), (degreeOneCon, Refl)))
+
+-- no self edges??
+-- acyclic
 --inwardSpokeConstraint : GraphConstraint
 --inwardSpokeConstraint = \[n] g . case g of
 --  G v -> let toZ = (\x eq_bool x 0)
