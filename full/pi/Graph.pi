@@ -4,7 +4,7 @@ import Nat
 import Vec
 import List
 import Fin 
-import Product
+import Product1
 
 map_with_index' : [A:Type] -> [B:Type] -> [n:Nat] -> Nat -> (Nat -> A -> B) -> Vec A n -> Vec B n
 map_with_index' = \[A][B][n] idx f v.
@@ -97,6 +97,10 @@ GraphConstraint = [n: Nat] -> Graph n -> Bool
 
 ConstrainedGraph : Type
 ConstrainedGraph = { n : Nat | { g: Graph n | { con : GraphConstraint | con [n] g = True }}}
+
+con_graph_con : ConstrainedGraph -> GraphConstraint
+con_graph_con = \g. (proj2 (proj2 (proj2 g)))
+--constrained_graph_constraint_true : (g : ConstrainedGraph) 
 --inwardSpokeConstraint : GraphConstraint
 --inwardSpokeConstraint = \[n] g . case g of
 --  G v -> let toZ = (\x eq_bool x 0)
