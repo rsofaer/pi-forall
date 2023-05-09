@@ -187,14 +187,38 @@ cg_noSelfEdge : ConstrainedGraph
 cg_noSelfEdge = (2, (G (Cons [1] (Cons 1 Nil) (Cons [0] (Cons 0 Nil) Nil)), (noSelfEdgeConstraint, Refl)))
 
 -- Example of a graph with a self-edge
-cg_selfEdgeFail : ConstrainedGraph
-cg_selfEdgeFail = (1, (G (Cons [0] (Cons 0 Nil) Nil), (noSelfEdgeConstraint, Refl)))
+--cg_selfEdgeFail : ConstrainedGraph
+--cg_selfEdgeFail = (1, (G (Cons [0] (Cons 0 Nil) Nil), (noSelfEdgeConstraint, Refl)))
 
-
+gt : Nat -> Nat -> Bool
+gt = \n m . case n of
+  Zero -> False -- 0 is not > anything
+  Succ n' -> case m of
+    Zero -> True
+    Succ m' -> gt n' m'
+  
 -- acyclic
---inwardSpokeConstraint : GraphConstraint
---inwardSpokeConstraint = \[n] g . case g of
---  G v -> let toZ = (\x eq_bool x 0)
--- Graph in which every node has an edge going to node 0
--- InwardSpokeGraph : Type
--- InwardSpokeGraph = {n : Nat | ((Graph n) *  }
+acyclicConstraintSingle: [n: Nat] ->  Nat -> List Node -> Bool
+acyclicConstraintSingle = \[n] idx lst . case lst of
+  Nil -> True
+  Cons h tl -> case gt h idx of 
+    True -> acyclicConstraintSingle [n] idx tl
+    False -> False
+
+acyclicConstraint' : [n: Nat] ->  Vec (List Node) n -> (idx: Nat) -> Bool 
+acyclicConstraint' = \[n] v idx . case v of
+  Nil -> True
+  Cons [m] h tl -> if acyclicConstraintSingle [n] idx h then acyclicConstraint' [m] tl (Succ idx)
+                   else False
+
+acyclicConstraint : GraphConstraint
+acyclicConstraint = \[n] g . case g of
+  G v -> acyclicConstraint' [n] v Zero
+
+-- Example of an acyclic Graph
+cg_acyclic: ConstrainedGraph
+cg_acyclic = (2, (G (Cons [1] (Cons 1 Nil) (Cons [0] (Nil) Nil)), (acyclicConstraint, Refl)))
+
+-- Example of a cyclic graph 
+cg_cyclic: ConstrainedGraph
+cg_cyclic = (2, (G (Cons [1] (Cons 0 Nil) (Cons [0] (Cons 1 Nil) Nil)), (acyclicConstraint, Refl)))
