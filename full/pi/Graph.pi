@@ -4,7 +4,6 @@ import Nat
 import Vec
 import List
 import Fin 
-import Product1
 
 map_with_index' : [A:Type] -> [B:Type] -> [n:Nat] -> Nat -> (Nat -> A -> B) -> Vec A n -> Vec B n
 map_with_index' = \[A][B][n] idx f v.
@@ -95,12 +94,50 @@ predecessors = \[n] g u . let pred_or_nothing_vec = maybe_preds [n] g u in
 GraphConstraint : Type
 GraphConstraint = [n: Nat] -> Graph n -> Bool 
 
+--GraphConstraint : Type
+--GraphConstraint = [n: Nat] -> Graph n -> Maybe (Graph n)
+--ConstrainedGraph : Type
+--ConstrainedGraph = { n : Nat | { g: Graph n | { con : GraphConstraint | con [n] g = Just g }}}
+
+
 ConstrainedGraph : Type
 ConstrainedGraph = { n : Nat | { g: Graph n | { con : GraphConstraint | con [n] g = True }}}
+--ConstrainedGraph = (n : Nat * (g: Graph n * ( con : GraphConstraint * con [n] g = True )))
+SizeAndGraph : Type
+SizeAndGraph  = {n: Nat | Graph n}
 
-con_graph_con : ConstrainedGraph -> GraphConstraint
-con_graph_con = \g. (proj2 (proj2 (proj2 g)))
---constrained_graph_constraint_true : (g : ConstrainedGraph) 
+sizeFromSG : SizeAndGraph -> Nat
+sizeFromSG = \sg . let (s, g) = sg in s
+graphFromSG : (sg: SizeAndGraph) -> Graph (sizeFromSG sg)
+graphFromSG = \sg . let (s, g) = sg in g
+
+con_graph_size : ConstrainedGraph -> Nat
+con_graph_size = \  g. (fst [Nat] 
+  [\n . (Sigma (Graph n) (\g. Sigma GraphConstraint (\con. (con [n] g = True))))] g) 
+
+con_graph_graphcon : (cg: ConstrainedGraph) -> { g: Graph (con_graph_size cg) | { con : GraphConstraint | con [con_graph_size cg] g = True }}
+con_graph_graphcon = \ g. (snd 
+  [Nat] 
+  [\n . Sigma (Graph n) (\g. Sigma GraphConstraint (\con. ((con [n] g) = True)))]
+  g) 
+
+con_graph_graph : (cg: ConstrainedGraph) -> Graph (con_graph_size cg)
+con_graph_graph = \ cg. let n = con_graph_size cg in 
+  (fst 
+  [Graph n] 
+  [\g. Sigma GraphConstraint (\con. ((con [n] g) = True))]
+  con_graph_graphcon cg) 
+
+con_graph_con_and_proof : (cg : ConstrainedGraph) -> { con : GraphConstraint | con [con_graph_size cg] (con_graph_graph cg) = True }
+con_graph_con_and_proof = \ cg . let n = con_graph_size cg in
+  let g = con_graph_graph cg in
+  (snd [Graph (con_graph_size cg)]
+  [\g . Sigma GraphConstraint (\con . ((con [n] g) = True))])
+
+{-
+constrained_graph_constraint_true : (g : ConstrainedGraph) -> con_graph_con g = True
+constrained_graph_constraint_true = PRINTME
+-}
 --inwardSpokeConstraint : GraphConstraint
 --inwardSpokeConstraint = \[n] g . case g of
 --  G v -> let toZ = (\x eq_bool x 0)
