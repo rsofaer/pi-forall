@@ -122,22 +122,18 @@ con_graph_graphcon = \ g. (snd
   g) 
 
 con_graph_graph : (cg: ConstrainedGraph) -> Graph (con_graph_size cg)
-con_graph_graph = \ cg. let n = con_graph_size cg in 
-  (fst 
-  [Graph n] 
-  [\g. Sigma GraphConstraint (\con. ((con [n] g) = True))]
-  con_graph_graphcon cg) 
+con_graph_graph = \ cg. let (n, a) = cg in
+  let (g, b) = a in g
 
 con_graph_con_and_proof : (cg : ConstrainedGraph) -> { con : GraphConstraint | con [con_graph_size cg] (con_graph_graph cg) = True }
-con_graph_con_and_proof = \ cg . let n = con_graph_size cg in
-  let g = con_graph_graph cg in
-  (snd [Graph (con_graph_size cg)]
-  [\g . Sigma GraphConstraint (\con . ((con [n] g) = True))])
+con_graph_con_and_proof = \ cg. let (n, a) = cg in
+  let (g, b) = a in b
 
-{-
-constrained_graph_constraint_true : (g : ConstrainedGraph) -> con_graph_con g = True
+con_graph_con : ConstrainedGraph -> GraphConstraint
+con_graph_con = \cg . let (n, wrapped_g) = cg in let (g, con') = wrapped_g in (fst [GraphConstraint] [\con. ((con [n] g) = True)] con')
+
+constrained_graph_constraint_true : (cg : ConstrainedGraph) -> (con_graph_con cg) [con_graph_size cg] (con_graph_graph cg) = True
 constrained_graph_constraint_true = PRINTME
--}
 --inwardSpokeConstraint : GraphConstraint
 --inwardSpokeConstraint = \[n] g . case g of
 --  G v -> let toZ = (\x eq_bool x 0)
